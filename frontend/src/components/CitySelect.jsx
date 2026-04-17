@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { geo } from '../utils/api';
+import { Building2, MapPin, Loader2 } from 'lucide-react';
 
 export default function CitySelect({ value, onChange, label = 'City', geoCity, geoLoading }) {
   const [query, setQuery]   = useState('');
@@ -31,13 +32,19 @@ export default function CitySelect({ value, onChange, label = 'City', geoCity, g
   if (!isEditing && value) {
     return (
       <div className="form-group" style={{ position: 'relative' }}>
-        <label className="label">🏙️ {label}</label>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '.65rem 1rem', background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-md)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>📍 {value}</span>
-            {geoCity === value && <span className="badge badge-green" style={{ fontSize: '.65rem' }}>(Auto-detected)</span>}
+        <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Building2 size={14} className="label-icon" style={{ color: 'var(--accent-green)' }} /> {label}
+        </label>
+        <div 
+          className="input" 
+          onClick={() => setIsEditing(true)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.45rem 1rem', height: '41.5px' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', overflow: 'hidden' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}><MapPin size={16} /> {value}</span>
+            {geoCity === value && <span className="badge badge-green" style={{ fontSize: '.6rem', padding: '.15rem .4rem', whiteSpace: 'nowrap', fontWeight: 700 }}>Auto</span>}
           </div>
-          <button type="button" onClick={() => setIsEditing(true)} className="btn btn-sm btn-outline" style={{ padding: '.2rem .5rem', fontSize: '.7rem' }}>Change</button>
+          <span style={{ fontSize: '.75rem', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.7, whiteSpace: 'nowrap' }}>Edit</span>
         </div>
       </div>
     );
@@ -45,9 +52,9 @@ export default function CitySelect({ value, onChange, label = 'City', geoCity, g
 
   return (
     <div className="form-group" ref={ref} style={{ position: 'relative' }}>
-      <label className="label">
-        🏙️ {label}
-        {geoLoading && <span style={{ marginLeft: '.4rem', fontSize: '.65rem', color: 'var(--accent-amber)' }}>⏳ detecting…</span>}
+      <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <Building2 size={14} className="label-icon" style={{ color: 'var(--accent-green)' }} /> {label}
+        {geoLoading && <span style={{ marginLeft: '.4rem', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '.65rem', color: 'var(--accent-amber)' }}><Loader2 size={12} className="spinner" /> detecting…</span>}
       </label>
       <div style={{ position: 'relative' }}>
         <input

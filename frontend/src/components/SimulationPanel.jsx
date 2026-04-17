@@ -96,7 +96,7 @@ export default function SimulationPanel({ onComplete }) {
       </div>
 
       {/* Simulation buttons */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: steps.length > 0 ? 20 : 0 }}>
+      <div className="grid grid-responsive" style={{ gap: 10, marginBottom: steps.length > 0 ? 20 : 0 }}>
         {SIMULATIONS.map(sim => (
           <motion.button key={sim.id} whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => !running && runSim(sim)}
@@ -115,7 +115,7 @@ export default function SimulationPanel({ onComplete }) {
               ) : sim.icon}
             </div>
             <div style={{ fontSize: 11, fontWeight: 700, color: running === sim.id ? sim.color : 'var(--text-primary)', lineHeight: 1.3 }}>{sim.label}</div>
-            <div className="font-mono" style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>{sim.desc}</div>
+            <div className="font-mono" style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>{sim.desc}</div>
           </motion.button>
         ))}
       </div>

@@ -214,6 +214,17 @@ async function initDb() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL DEFAULT 'info',
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      read INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
 
   // Seed admin
   if (!_db.prepare("SELECT id FROM users WHERE phone='9999999999'").get()) {
@@ -222,12 +233,19 @@ async function initDb() {
        VALUES ('Admin User','9999999999','ShramInsure','ADMIN001','Mumbai','Central',0,0,1,100000,15,1)`
     ).run();
   }
+
   // Seed demo worker
   if (!_db.prepare("SELECT id FROM users WHERE phone='9876543210'").get()) {
-    _db.prepare(
+    const res = _db.prepare(
       `INSERT INTO users (name,phone,platform,platform_id,city,zone,avg_weekly_income,risk_score,wallet_balance,premium_paid_months,accidental_cover_active)
        VALUES ('Ravi Kumar','9876543210','Zepto','ZPT-RK-001','Mumbai','East',4200,0.65,2800,13,1)`
     ).run();
+
+    // Add seed notification for Ravi
+    _db.prepare(`
+      INSERT INTO notifications (user_id, type, title, message, read, created_at)
+      VALUES (?, 'info', 'Protection Active', 'Your ShramInsure parametric protection is live. You are covered for weather disruptions in Mumbai.', 0, datetime('now'))
+    `).run(res.lastID);
   }
 
   saveDb();

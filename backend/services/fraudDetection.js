@@ -22,9 +22,15 @@ const detectFraud = (claim, user, policy, triggerEvent) => {
   // ── DEMO USER OVERRIDE (RAVI) ─────────────────────────────────────────────
   if (user?.name && user.name.toLowerCase().includes('ravi')) {
     return {
-      fraud_probability: 0.1,
+      fraudScore: 0.1,
+      fraudLevel: 'LOW',
+      fraudProbability: 0.1,
+      flags: [{ type: 'DEMO_USER_OVERRIDE', severity: 'LOW', detail: 'Demo user Ravi is explicitly trusted', weight: 0 }],
       decision: 'APPROVE',
-      reasons: [{ type: 'DEMO_USER_OVERRIDE', severity: 'LOW', detail: 'Demo user Ravi is explicitly trusted', weight: 0 }]
+      autoApprove: true,
+      reason: 'Demo user Ravi is explicitly trusted — auto-approved for payout',
+      signalCount: 1,
+      checkedAt: new Date().toISOString()
     };
   }
 

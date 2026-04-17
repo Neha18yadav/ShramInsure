@@ -35,6 +35,7 @@ const startServer = async () => {
   app.use('/api/fraud',     require('./routes/fraud'));
   app.use('/api/admin',     require('./routes/admin'));
   app.use('/api/geo',       require('./routes/geo'));
+  app.use('/api/notifications', require('./routes/notifications'));
 
   // 3. Health + root
   app.get('/', (_req, res) => res.json({

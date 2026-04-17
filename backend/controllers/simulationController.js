@@ -7,6 +7,7 @@
 const { getDb } = require('../config/database');
 const { detectFraud } = require('../services/fraudDetection');
 const { initiatePayout, generateUpiId } = require('../services/paymentService');
+const { createNotification } = require('../services/notificationService');
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -125,6 +126,13 @@ const runSimulation = async (req, res, event) => {
 
           payoutResult = { txnId: payResult.txnId, amount: payoutAmount, upiId, method: 'UPI', status: 'success', rzpPayoutId: payResult.rzpPayoutId };
 
+          // Real Notification
+          createNotification(user.id, {
+            type: 'success',
+            title: 'Payout Approved',
+            message: `₹${payoutAmount.toFixed(0)} credited to your UPI for a simulated ${event.label} in ${city}.`
+          });
+
           addStep(7, '💸 Payout Credited Instantly!', `₹${payoutAmount.toFixed(0)} sent via UPI to ${upiId} | TXN: ${payResult.txnId} | Zero manual intervention.`, '🎉', 'paid', { payout: payoutResult });
         } else {
           db.prepare(`UPDATE claims SET status = 'pending' WHERE id = ?`).run(claimResult.lastID);
@@ -135,6 +143,12 @@ const runSimulation = async (req, res, event) => {
         addStep(7, 'Payout Exception — Queued', `Error: ${err.message}. Claim queued for retry.`, '⏳', 'pending');
       }
     } else if (claimStatus === 'rejected') {
+      // Real Notification
+      createNotification(user.id, {
+        type: 'alert',
+        title: 'Simulation: Claim Rejected',
+        message: `Your simulated claim for ${event.label} was rejected due to high fraud risk signals.`
+      });
       addStep(7, 'Payout Blocked — High Fraud Risk', `Fraud score: ${(fraud.fraudScore * 100).toFixed(0)}/100. Claim flagged for manual investigation. No payout issued.`, '🚫', 'blocked');
     } else {
       addStep(7, 'Claim Queued for Manual Review', `Moderate fraud signals. A human reviewer will assess within 24 hours.`, '⏳', 'pending');

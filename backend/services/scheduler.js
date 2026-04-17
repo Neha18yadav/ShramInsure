@@ -93,7 +93,8 @@ const runSchedulerCycle = async () => {
     try {
       const [weather, aqiData] = await Promise.all([fetchWeather(city), fetchAQI(city)]);
       cityConditions[city] = { weather, aqi: aqiData.aqi, source: weather.source };
-      log('step', `  ${city}: ${weather.rainfall}mm rain | ${weather.temp}°C | AQI ${aqiData.aqi} [${weather.source}]`);
+      const syncMsg = `[SYNC] ${city}: ${weather.rainfall}mm rain | ${weather.temp}°C | AQI ${aqiData.aqi} [via ${weather.source}]`;
+      log('step', syncMsg);
     } catch (err) {
       log('error', `  Failed to fetch conditions for ${city}`, { error: err.message });
     }

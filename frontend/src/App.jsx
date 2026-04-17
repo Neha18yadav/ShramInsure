@@ -1,58 +1,62 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './components/Toast';
+import Layout from './components/Layout';
+
+// Pages
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import PoliciesPage from './pages/PoliciesPage';
 import ClaimsPage from './pages/ClaimsPage';
-import AdminPage from './pages/AdminPage';
 import SimulationPage from './pages/SimulationPage';
-import Layout from './components/Layout';
+import AdminPage from './pages/AdminPage';
+import NotFound from './pages/NotFound';
 
+// ── Private Route ─────────────────────────────────────────────────────────────
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div className="spinner spinner-lg" style={{ margin: '0 auto 1rem' }} />
-        <p className="text-secondary text-sm">Loading ShramInsure...</p>
-      </div>
-    </div>
-  );
-  return user ? children : <Navigate to="/" replace />;
+  if (loading) return <div className="loading-screen">🛡️ ShramInsure...</div>;
+  return user ? children : <Navigate to="/login" replace />;
 };
 
+// ── Admin Route ──────────────────────────────────────────────────────────────
 const AdminRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading-screen">🛡️ ShramInsure...</div>;
   return user?.is_admin ? children : <Navigate to="/dashboard" replace />;
 };
 
-function AppRoutes() {
-  const { user } = useAuth();
-  return (
-    <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
-      <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
-        <Route path="dashboard"  element={<Dashboard />} />
-        <Route path="policies"   element={<PoliciesPage />} />
-        <Route path="claims"     element={<ClaimsPage />} />
-        <Route path="simulate"   element={<SimulationPage />} />
-        <Route path="admin"      element={<AdminRoute><AdminPage /></AdminRoute>} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
-
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <NotificationProvider>
+          <ToastProvider>
+            <Routes>
+              {/* Public: Landing / Auth */}
+              <Route path="/"        element={<AuthPage />} />
+              <Route path="/login"   element={<AuthPage />} />
+              <Route path="/signup"  element={<AuthPage />} />
+
+              {/* Private: Layout Wrapper */}
+              <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
+                <Route path="/dashboard"  element={<Dashboard />} />
+                <Route path="/policies"   element={<PoliciesPage />} />
+                <Route path="/claims"     element={<ClaimsPage />} />
+                <Route path="/simulate"   element={<SimulationPage />} />
+                
+                {/* Admin Area */}
+                <Route path="/admin"      element={<AdminRoute><AdminPage /></AdminRoute>} />
+              </Route>
+
+              {/* 404 handler */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ToastProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </Router>
   );
 }

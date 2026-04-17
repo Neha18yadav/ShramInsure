@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { simulate } from '../utils/api';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+import { Target, Zap, Waves, CloudRain, ShieldCheck, ThermometerSun, Wind, Ban, FileText, ClipboardCheck, History, Info } from 'lucide-react';
 
 const SIMULATIONS = [
-  { key: 'rain',      label: 'Simulate Heavy Rain',       icon: '🌧️', color: 'var(--accent-blue)',   desc: '87.5 mm/hr monsoon surge — threshold: 65 mm/hr',    severity: 'high',     badge: 'badge-blue'   },
-  { key: 'pollution', label: 'Simulate AQI Emergency',    icon: '💨', color: 'var(--accent-amber)',  desc: 'AQI 340 hazardous air — threshold: 200 AQI',          severity: 'critical', badge: 'badge-amber'  },
-  { key: 'heat',      label: 'Simulate Extreme Heat',     icon: '🌡️', color: 'var(--accent-rose)',   desc: '46.2°C heat wave — threshold: 42°C',                  severity: 'high',     badge: 'badge-rose'   },
-  { key: 'flood',     label: 'Simulate Flood Alert',      icon: '🌊', color: 'var(--accent-cyan)',   desc: '1.4m water level — threshold: 0.5m',                  severity: 'critical', badge: 'badge-cyan'   },
-  { key: 'curfew',    label: 'Simulate Zone Curfew',      icon: '🚫', color: 'var(--accent-purple)', desc: 'Civil restriction in zone — income blocked',           severity: 'critical', badge: 'badge-purple' },
+  { key: 'rain',      label: 'Simulate Heavy Rain',       icon: CloudRain, color: '#0ea5e9',   desc: '87.5 mm/hr monsoon surge — threshold: 65 mm/hr',    severity: 'high',     badge: 'badge-blue'   },
+  { key: 'pollution', label: 'Simulate AQI Emergency',    icon: Wind,      color: '#f59e0b',  desc: 'AQI 340 hazardous air — threshold: 200 AQI',          severity: 'critical', badge: 'badge-amber'  },
+  { key: 'heat',      label: 'Simulate Extreme Heat',     icon: ThermometerSun, color: '#ef4444',   desc: '46.2°C heat wave — threshold: 42°C',                  severity: 'high',     badge: 'badge-rose'   },
+  { key: 'flood',     label: 'Simulate Flood Alert',      icon: Waves,     color: '#06b6d4',   desc: '1.4m water level — threshold: 0.5m',                  severity: 'critical', badge: 'badge-cyan'   },
+  { key: 'curfew',    label: 'Simulate Zone Curfew',      icon: Ban,       color: '#8b5cf6', desc: 'Civil restriction in zone — income blocked',           severity: 'critical', badge: 'badge-purple' },
 ];
 
 const STEP_LABELS = {
@@ -26,9 +27,9 @@ const FraudBar = ({ score }) => {
   const label = score >= 0.7 ? 'HIGH RISK' : score >= 0.4 ? 'MEDIUM' : 'CLEAN';
   return (
     <div style={{ marginTop: '.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.72rem', color: 'var(--text-muted)', marginBottom: '.3rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.75rem', color: 'var(--text-secondary)', marginBottom: '.4rem', fontWeight: 600 }}>
         <span>Fraud Score</span>
-        <span style={{ color, fontWeight: 700 }}>{(score * 100).toFixed(0)}/100 · {label}</span>
+        <span style={{ color, fontWeight: 800 }}>{(score * 100).toFixed(0)}/100 · {label}</span>
       </div>
       <div className="risk-bar-track">
         <div className="risk-bar-fill" style={{ width: `${score * 100}%`, background: color }} />
@@ -71,16 +72,21 @@ export default function SimulationPage() {
 
   return (
     <div className="page-enter">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '.25rem' }}>🎯 Demo Simulation Engine</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem' }}>
-          One-click trigger → full automation: claim filing → AI fraud check → instant payout
-        </p>
+      <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-green)', color: 'var(--accent-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Target size={28} />
+        </div>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '.15rem' }}>Simulation Engine</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem' }}>
+            One-click trigger → full automation: claim filing → AI fraud check → instant payout
+          </p>
+        </div>
       </div>
 
       {/* Coverage notice */}
-      <div className="alert alert-info" style={{ marginBottom: '1.5rem' }}>
-        <span>📋</span>
+      <div className="alert alert-info" style={{ marginBottom: '1.5rem', alignItems: 'center' }}>
+        <Info size={18} className="shrink-0" />
         <div>
           <strong>Income Loss Only Coverage</strong> — Simulations demonstrate parametric payout for disruption-caused income loss. No health or vehicle claims.
           <span style={{ display: 'block', fontSize: '.8rem', marginTop: '.2rem', opacity: .8 }}>
@@ -104,8 +110,8 @@ export default function SimulationPage() {
                   opacity: running && running !== s.key ? .5 : 1,
                   fontFamily: 'inherit', textAlign: 'left', width: '100%',
                 }}>
-                <div style={{ fontSize: '2rem', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-card2)', borderRadius: 10, flexShrink: 0 }}>
-                  {running === s.key ? <span className="spinner" /> : s.icon}
+                <div style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-card2)', borderRadius: 10, flexShrink: 0, color: result?.simKey === s.key ? s.color : 'inherit' }}>
+                  {running === s.key ? <span className="spinner" /> : <s.icon size={22} />}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '.95rem', marginBottom: '.2rem' }}>{s.label}</div>
@@ -121,13 +127,20 @@ export default function SimulationPage() {
             <div style={{ marginTop: '1.5rem' }}>
               <h4 style={{ fontWeight: 600, fontSize: '.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '.5rem' }}>Recent Runs</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
-                {history.map((h, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.4rem .75rem', background: 'var(--bg-card2)', borderRadius: 'var(--radius-sm)', fontSize: '.75rem' }}>
-                    <span>{SIMULATIONS.find(s => s.key === h.simKey)?.icon} {SIMULATIONS.find(s => s.key === h.simKey)?.label}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{h.time}</span>
-                    <span style={{ color: h.success ? 'var(--accent-green)' : 'var(--accent-rose)' }}>{h.success ? '✅' : '❌'}</span>
-                  </div>
-                ))}
+                {history.map((h, i) => {
+                  const s = SIMULATIONS.find(sim => sim.key === h.simKey);
+                  const Icon = s?.icon;
+                  return (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.4rem .75rem', background: 'var(--bg-card2)', borderRadius: 'var(--radius-sm)', fontSize: '.75rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {Icon && <Icon size={14} style={{ opacity: 0.8 }} />} 
+                        {s?.label}
+                      </span>
+                      <span style={{ color: 'var(--text-muted)' }}>{h.time}</span>
+                      <span style={{ color: h.success ? 'var(--accent-green)' : 'var(--accent-rose)' }}>{h.success ? '✅' : '❌'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -136,10 +149,10 @@ export default function SimulationPage() {
         {/* Result panel */}
         <div>
           {!result && !running && (
-            <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem', border: '2px dashed var(--border)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '4rem 2rem', border: '2px dashed var(--border)', minHeight: '400px' }}>
+              <div style={{ marginBottom: '1.5rem', color: 'var(--text-muted)', opacity: 0.3 }}><Target size={64} strokeWidth={1} /></div>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '.5rem', color: 'var(--text-primary)' }}>Ready to Simulate</div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>Click any disruption event to trigger the full automated pipeline</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '.875rem', maxWidth: '280px' }}>Click any disruption event to trigger the full automated pipeline</div>
             </div>
           )}
 
@@ -155,7 +168,7 @@ export default function SimulationPage() {
             <div className="card page-enter" style={{ padding: '1.25rem' }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem', marginBottom: '1.25rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '2rem' }}>{sim?.icon}</span>
+                <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: sim?.color }}><sim.icon size={28} /></div>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{result.triggerLabel}</div>
                   <div style={{ fontSize: '.78rem', color: 'var(--text-secondary)' }}>{result.city} · {result.zone}</div>
@@ -206,16 +219,18 @@ export default function SimulationPage() {
               {/* Payout receipt */}
               {result.payout && (
                 <div style={{ marginTop: '1rem', background: 'var(--bg-card2)', borderRadius: 'var(--radius-md)', padding: '.9rem 1rem' }}>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '.5rem' }}>Payment Receipt</div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ClipboardCheck size={14} className="text-green" /> Payment Receipt
+                  </div>
                   {[
                     ['TXN ID',   result.payout.txnId],
                     ['Amount',   `₹${result.payout.amount?.toFixed(0)}`],
                     ['UPI ID',   result.payout.upiId],
                     ['Status',   result.payout.status?.toUpperCase()],
                   ].map(([k, v]) => (
-                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '.3rem 0', borderBottom: '1px solid var(--border)', fontSize: '.8rem' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{k}</span>
-                      <span style={{ color: k === 'Status' ? 'var(--accent-green)' : 'var(--text-primary)', fontWeight: 600 }}>{v}</span>
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '.45rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '.82rem' }}>
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{k}</span>
+                      <span style={{ color: k === 'Status' ? 'var(--accent-green)' : 'var(--text-primary)', fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -224,8 +239,8 @@ export default function SimulationPage() {
               {/* Fraud detail */}
               {result.fraud && (
                 <div style={{ marginTop: '1rem', background: 'var(--bg-card2)', borderRadius: 'var(--radius-md)', padding: '.9rem 1rem' }}>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '.5rem' }}>
-                    Fraud Analysis · {result.fraud.fraudLevel}
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <History size={14} className="text-amber" /> Fraud Analysis · {result.fraud.fraudLevel}
                   </div>
                   <FraudBar score={result.fraud.fraudScore} />
                   {result.fraud.flags?.length > 0 ? (

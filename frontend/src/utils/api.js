@@ -127,6 +127,17 @@ export const admin = {
   runScheduler:    () => post('/admin/scheduler/run'),
   schedulerStatus: () => get('/admin/scheduler/status'),
   logs:            (p) => get('/admin/logs', p),
+  health: {
+    sync: () => get('/admin/health/sync'),
+  },
+};
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+export const notifications = {
+  list:     ()   => get('/notifications'),
+  markRead: (id) => req('PATCH', `/notifications/${id}/read`),
+  readAll:  ()   => req('PATCH', '/notifications/read-all'),
+  delete:   (id) => req('DELETE', `/notifications/${id}`),
 };
 
 // ── Geo ───────────────────────────────────────────────────────────────────────

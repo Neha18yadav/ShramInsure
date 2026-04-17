@@ -6,6 +6,7 @@ const { getDb }                      = require('../config/database');
 const { v4: uuidv4 }                 = require('uuid');
 const { detectFraud }                = require('./fraudDetection');
 const { initiatePayout, generateUpiId } = require('./paymentService');
+const { createNotification }          = require('./notificationService');
 
 // ── Platforms allowed (Q-Commerce only) ──────────────────────────────────────
 const QCOMMERCE_PLATFORMS = ['Zepto', 'Blinkit', 'Instamart', 'Dunzo'];
@@ -69,7 +70,9 @@ const httpsGet = (url, timeoutMs = 5000) => new Promise((resolve, reject) => {
 });
 
 // ── Weather fetcher (OpenWeatherMap → mock fallback) ─────────────────────────
+// ── Weather fetcher (OpenWeatherMap → Open-Meteo → mock fallback) ───────────
 const fetchWeather = async (city) => {
+  // 1. Try OpenWeatherMap (requires valid key)
   if (process.env.OPENWEATHER_API_KEY) {
     try {
       const url  = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)},IN&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
@@ -88,6 +91,29 @@ const fetchWeather = async (city) => {
       console.warn(`[Weather] OpenWeatherMap failed for ${city}: ${e.message}`);
     }
   }
+
+  // 2. Try Open-Meteo (Keyless fallback)
+  const coords = CITY_COORDS.find(c => c.city === city);
+  if (coords) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto`;
+      const data = await httpsGet(url);
+      if (data.current) {
+        return {
+          temp:      +data.current.temperature_2m.toFixed(1),
+          rainfall:  +data.current.precipitation.toFixed(1),
+          windSpeed: +data.current.wind_speed_10m.toFixed(1),
+          humidity:  +data.current.relative_humidity_2m,
+          condition: 'live (open-meteo)',
+          source:    'openmeteo',
+        };
+      }
+    } catch (e) {
+      console.warn(`[Weather] Open-Meteo failed for ${city}: ${e.message}`);
+    }
+  }
+
+  // 3. Final Fallback (Simulated)
   const base = MOCK_WEATHER[city] || { temp: 33, rainfall: 20, windSpeed: 18, humidity: 60, condition: 'Partly Cloudy' };
   return {
     ...base,
@@ -261,6 +287,14 @@ const processTriggerEvents = async (city, zone) => {
             db.prepare(`INSERT INTO payouts (claim_id,user_id,amount,method,txn_id,status,upi_id,settled_at) VALUES (?,?,?,'UPI',?,'processed',?,datetime('now'))`).run(cId, pol.user_id, payAmt, pay.txnId, upiId);
             db.prepare(`UPDATE claims SET status='paid', paid_at=datetime('now') WHERE id=?`).run(cId);
             db.prepare(`UPDATE users SET wallet_balance=wallet_balance+? WHERE id=?`).run(payAmt, pol.user_id);
+            
+            // Real Notification
+            createNotification(pol.user_id, {
+              type: 'success',
+              title: 'Live Trigger: Payout Sent',
+              message: `Parametric breach detected: ${event.label} in ${city}. ₹${payAmt.toFixed(0)} auto-credited to your wallet.`
+            });
+
             newClaims.push({ claimNo, status: 'paid', payAmt, txnId: pay.txnId });
           } else {
             db.prepare(`UPDATE claims SET status='pending' WHERE id=?`).run(cId);
@@ -268,6 +302,13 @@ const processTriggerEvents = async (city, zone) => {
           }
         } catch { db.prepare(`UPDATE claims SET status='pending' WHERE id=?`).run(cId); }
       } else {
+        if (claimSt === 'rejected') {
+          createNotification(pol.user_id, {
+            type: 'alert',
+            title: 'Claim Blocked',
+            message: `Auto-claim for ${event.label} in ${city} was blocked due to manual review requirement.`
+          });
+        }
         newClaims.push({ claimNo, status: claimSt, payAmt });
       }
     }
