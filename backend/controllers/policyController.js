@@ -116,8 +116,18 @@ const createPolicy = (req, res) => {
  */
 const getPolicies = (req, res) => {
   try {
-    const db       = getDb();
-    const policies = db.prepare('SELECT * FROM policies WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
+    const db = getDb();
+    let policies;
+    if (req.user.is_admin === 1) {
+      policies = db.prepare(`
+        SELECT p.*, u.name as user_name, u.platform 
+        FROM policies p 
+        JOIN users u ON u.id = p.user_id 
+        ORDER BY p.created_at DESC
+      `).all();
+    } else {
+      policies = db.prepare('SELECT * FROM policies WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
+    }
     res.json({ policies, coverageType: 'INCOME_LOSS_ONLY' });
   } catch (err) {
     res.status(500).json({ error: err.message });

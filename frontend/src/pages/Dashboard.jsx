@@ -84,6 +84,21 @@ export default function Dashboard() {
 
   if (loading) return <DashboardSkeleton />;
 
+  if (user?.is_admin) {
+    return (
+      <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚙️</div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '.5rem' }}>Admin Control Panel</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '2rem' }}>
+            Monitor system performance and risk analytics
+          </p>
+          <a href="/admin" className="btn btn-primary btn-lg">Go to Admin Insights 📊</a>
+        </div>
+      </div>
+    );
+  }
+
   const policy       = data?.activePolicy;
   const stats        = data?.stats || {};
   const riskScore    = riskData?.riskScore || user?.risk_score || 0.5;
@@ -122,7 +137,7 @@ export default function Dashboard() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '.75rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '.15rem' }}>
-            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, {user?.name?.split(' ')[0]} 👋
+            Welcome back, {user?.name?.split(' ')[0]} 👋
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '.875rem' }}>
             {user?.platform} · {user?.city}, {user?.zone} · Q-Commerce Delivery Worker

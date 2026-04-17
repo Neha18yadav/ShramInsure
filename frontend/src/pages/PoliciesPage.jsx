@@ -1,6 +1,6 @@
 // src/pages/PoliciesPage.jsx — Policy management with AI quote and persona
 import { useState, useEffect } from 'react';
-import { policies as policiesApi } from '../utils/api';
+import { policies as policiesApi, detectCity } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import CitySelect from '../components/CitySelect';
@@ -27,10 +27,27 @@ export default function PoliciesPage() {
   const [quoting, setQuoting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [quote, setQuote]     = useState(null);
+  
   const [form, setForm]       = useState({ city: user?.city || 'Mumbai', zone: user?.zone || 'Central', weeks: 4 });
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoCity, setGeoCity] = useState(null);
+  
   const [cancelling, setCancelling] = useState(null);
 
   useEffect(() => { loadPolicies(); }, []);
+
+  // Auto-detect city for workers if no active policy
+  useEffect(() => {
+    if (!user?.is_admin) {
+      setGeoLoading(true);
+      detectCity().then(c => {
+        if (c) {
+          setGeoCity(c);
+          setForm(f => ({ ...f, city: c }));
+        }
+      }).catch(() => {}).finally(() => setGeoLoading(false));
+    }
+  }, [user]);
 
   const loadPolicies = async () => {
     setLoading(true);
@@ -70,6 +87,63 @@ export default function PoliciesPage() {
     setCancelling(null);
   };
 
+  if (user?.is_admin) {
+    return (
+      <div className="page-enter">
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '.25rem' }}>📊 Policy Management</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem' }}>Monitor and manage all active user policies</p>
+        </div>
+
+        <div className="card">
+          {loading ? <Skeleton h={200} /> : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Policy #</th>
+                    <th>Worker</th>
+                    <th>City / Zone</th>
+                    <th>Coverage</th>
+                    <th>Premium</th>
+                    <th>Risk Score</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map(p => {
+                    const sc = STATUS_COLORS[p.status] || STATUS_COLORS.expired;
+                    return (
+                      <tr key={p.id}>
+                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.policy_number}</td>
+                        <td>
+                          <div>{p.user_name}</div>
+                          <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{p.platform}</div>
+                        </td>
+                        <td>{p.city} · {p.zone}</td>
+                        <td style={{ color: 'var(--accent-green)', fontWeight: 600 }}>{fmt(p.coverage_amount)}</td>
+                        <td>{fmt(p.weekly_premium)}/wk</td>
+                        <td>
+                          <span style={{ color: riskColor(p.risk_score), fontWeight: 700 }}>{(p.risk_score * 100).toFixed(0)}%</span>
+                        </td>
+                        <td>
+                          <span style={{ padding: '.2rem .6rem', borderRadius: 99, background: sc.bg, color: sc.color, fontSize: '.72rem', fontWeight: 600 }}>
+                            {p.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!list.length && <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No policies in the system</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const activePolicy = list.find(p => p.status === 'active' && new Date(p.end_date) > new Date());
 
   return (
@@ -83,7 +157,7 @@ export default function PoliciesPage() {
         {/* Quote / Create form */}
         <div className="card">
           <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem' }}>
-            {activePolicy ? '📋 Active Policy' : '+ Get AI Quote'}
+            {activePolicy ? '📋 Active Policy' : '✨ Get AI Quote'}
           </h3>
 
           {activePolicy ? (
@@ -112,26 +186,26 @@ export default function PoliciesPage() {
             </>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
-                <CitySelect value={form.city} onChange={c => setForm(f => ({ ...f, city: c }))} label="City" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem', marginBottom: '1rem' }}>
+                <CitySelect value={form.city} onChange={c => setForm(f => ({ ...f, city: c }))} label="City" geoCity={geoCity} geoLoading={geoLoading} />
                 <div className="form-group">
                   <label className="label">📍 Zone</label>
                   <select className="input" value={form.zone} onChange={e => setForm(f => ({ ...f, zone: e.target.value }))}>
                     {ZONES.map(z => <option key={z}>{z}</option>)}
                   </select>
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="label">📅 Duration (weeks)</label>
-                <select className="input" value={form.weeks} onChange={e => setForm(f => ({ ...f, weeks: e.target.value }))}>
-                  {[1, 2, 4, 8, 12].map(w => <option key={w} value={w}>{w} week{w > 1 ? 's' : ''}</option>)}
-                </select>
+                <div className="form-group">
+                  <label className="label">📅 Duration (weeks)</label>
+                  <select className="input" value={form.weeks} onChange={e => setForm(f => ({ ...f, weeks: e.target.value }))}>
+                    {[1, 2, 4, 8, 12].map(w => <option key={w} value={w}>{w} week{w > 1 ? 's' : ''}</option>)}
+                  </select>
+                </div>
               </div>
               <button className="btn btn-blue btn-block" onClick={getQuote} disabled={quoting} style={{ marginBottom: '.75rem' }}>
                 {quoting ? <><span className="spinner" /> Getting AI Quote...</> : '🧠 Get AI Quote'}
               </button>
               {quote && (
-                <div style={{ background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: 'var(--radius-md)', padding: '1rem', marginBottom: '.75rem' }}>
+                <div className="page-enter" style={{ background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: 'var(--radius-md)', padding: '1rem', marginBottom: '.75rem' }}>
                   <div style={{ fontWeight: 700, color: 'var(--accent-green)', fontSize: '1.05rem', marginBottom: '.5rem' }}>
                     {fmt(quote.weeklyPremium)}/week
                   </div>
@@ -149,7 +223,7 @@ export default function PoliciesPage() {
                 </div>
               )}
               {quote && (
-                <button className="btn btn-primary btn-block" onClick={createPolicy} disabled={creating}>
+                <button className="btn btn-primary btn-block page-enter" onClick={createPolicy} disabled={creating}>
                   {creating ? <><span className="spinner" /> Creating...</> : '🚀 Create Policy'}
                 </button>
               )}
@@ -167,10 +241,10 @@ export default function PoliciesPage() {
               {Array(3).fill(0).map((_, i) => <div key={i} className="card"><Skeleton h={100} /></div>)}
             </div>
           ) : list.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '.75rem' }}>📄</div>
-              <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>No policies yet</div>
-              <div style={{ fontSize: '.85rem', color: 'var(--text-muted)' }}>Get an AI quote and create your first policy</div>
+            <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
+              <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '.5rem', color: 'var(--text-primary)' }}>No policies yet</div>
+              <div style={{ fontSize: '.85rem', color: 'var(--text-muted)' }}>Get started with your first AI-powered protection plan</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>

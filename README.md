@@ -1,163 +1,92 @@
-# ShramInsure — AI-Powered Parametric Income Insurance for Gig Workers
+# 🛡️ ShramInsure
 
-> **Coverage Type:** Income Loss Only (no health/vehicle/accident)  
-> **Model:** Fully automated zero-touch parametric claims with AI fraud detection
+**AI-Powered Parametric Income Protection for India's Q-Commerce Gig Workers**
 
----
-
-## 🚀 How to Run
-
-### 1. Backend
-
-```bash
-cd backend
-cp .env.example .env     # optional — works with defaults
-npm install
-npm run dev              # starts on http://localhost:5001
-```
-
-### 2. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev              # starts on http://localhost:5173
-```
-
-### 3. Demo Credentials
-
-| Role   | Phone        |
-|--------|--------------|
-| Worker | 9876543210   |
-| Admin  | 9999999999   |
-
-Click **"Get OTP"** → OTP is shown on-screen (dev mode).
+ShramInsure is a zero-touch, fully automated parametric insurance platform designed exclusively for the modern gig economy (Zepto, Blinkit, Instamart, Dunzo). When severe weather or civic disruptions block riders from earning, ShramInsure instantly detects the event and processes an automated payout—with zero paperwork, zero claims filing, and zero waiting.
 
 ---
 
-## 🏗️ Architecture
+## 🌟 The Problem
+India's 15+ million gig workers are heavily dependent on daily wages. When a sudden monsoon floods the streets, or the AQI reaches hazardous levels, their income drops to zero. Traditional insurance models fail here because they are focused on health/accidents, require manual proof of loss, and take weeks to process a claim.
 
-```
-ShramInsure/
-├── backend/
-│   ├── services/
-│   │   ├── aiEngine.js          # Hybrid AI: weather(30%) + AQI(20%) + history(20%) + location(15%) + demand(15%)
-│   │   ├── aiPricing.js         # Weekly premium engine + persona system (Zepto/Zomato/Amazon etc.)
-│   │   ├── scheduler.js         # node-cron every 5 min — trigger→claim→fraud→payout pipeline
-│   │   ├── triggerMonitor.js    # Real API + fallback weather/AQI fetching + 6 parametric triggers
-│   │   ├── fraudDetection.js    # 7-signal fraud engine: GPS mismatch, duplicate, time anomaly, weather mismatch
-│   │   └── paymentService.js    # Razorpay-structured mock UPI payout
-│   ├── controllers/
-│   │   ├── simulationController.js  # One-click demo: trigger→claim→fraud→payout with step-by-step logs
-│   │   ├── analyticsController.js   # Business KPIs, loss ratio, revenue vs payouts, fraud trends
-│   │   ├── adminController.js       # Predictive claims, high-risk zones, platform performance
-│   │   ├── claimsController.js      # Auto-trigger check + admin approve/reject
-│   │   ├── policyController.js      # Weekly pricing + persona-aware quotes
-│   │   └── riskController.js        # Hybrid AI risk + next-week prediction
-│   └── index.js                 # Server entry — starts scheduler after DB init
-│
-└── frontend/
-    ├── src/
-    │   ├── pages/
-    │   │   ├── Dashboard.jsx    # Worker: policy, AI risk, 7-day forecast, live env, claims
-    │   │   ├── PoliciesPage.jsx # AI quote with persona + policy management
-    │   │   ├── ClaimsPage.jsx   # Claims with fraud meter + inline payout
-    │   │   ├── SimulationPage.jsx # One-click demo: Rain/AQI/Flood/Heat/Curfew
-    │   │   ├── AdminPage.jsx    # KPIs, fraud trends, predictions, platform perf
-    │   │   └── AuthPage.jsx     # Register + OTP login with persona display
-    │   ├── components/
-    │   │   ├── Layout.jsx       # Sidebar with risk meter + accidental cover progress
-    │   │   └── Toast.jsx        # Global toast notification system
-    │   ├── context/AuthContext.jsx
-    │   └── utils/api.js         # Centralized fetch client for all endpoints
-```
+## 💡 The Solution
+ShramInsure introduces **Income-Loss Parametric Insurance**. 
+The event *is* the claim.
+
+If independent, third-party Oracles (like OpenWeatherMap or WAQI) verify that a threshold has been breached in the worker's zone, the system automatically triggers a claim, runs an AI fraud check, and instantly initiates a UPI payout to cover the lost daily wages.
 
 ---
 
-## ⚙️ Parametric Triggers
-
-| Trigger        | Threshold  | Auto-Action                          |
-|----------------|-----------|---------------------------------------|
-| 🌧️ Heavy Rain  | > 65 mm/hr | Auto-file income loss claim           |
-| 🌡️ Extreme Heat | > 42°C     | Auto-file income loss claim           |
-| 💨 Air Quality | AQI > 200  | Auto-file income loss claim           |
-| ⛈️ Storm       | > 50 km/h  | Auto-file income loss claim           |
-| 🌊 Flood       | > 0.5m     | Auto-file income loss claim           |
-| 🚫 Curfew      | Active     | Auto-file income loss claim           |
+## 🎯 Target Persona
+**Q-Commerce Delivery Partners**
+We exclusively serve rapid-delivery riders (Zepto, Blinkit, Swiggy Instamart, Amazon Fresh). These riders operate in hyper-local zones (e.g., a 3km radius), making them perfect candidates for highly localized, zone-specific parametric triggers.
 
 ---
 
-## 🤖 Fraud Detection Signals
+## ✨ Key Features
 
-| Signal                  | Weight | Description                                |
-|-------------------------|--------|--------------------------------------------|
-| Duplicate claim 24h     | 0.45   | Same trigger filed twice in 24 hours       |
-| GPS location mismatch   | 0.40   | Claim city ≠ policy city                   |
-| Out-of-coverage period  | 0.60   | Claim outside policy dates                 |
-| Early claim anomaly     | 0.22   | Claim < 24h after policy creation          |
-| Weather threshold unmet | 0.55   | Trigger not actually breached              |
-| High claim frequency    | 0.28   | > 4 claims in 30 days                     |
-| Payout amount anomaly   | 0.18   | Claim > 2.8× historical average            |
+### 🤖 1. Hybrid AI Pricing & Risk Engine
+Our deterministic AI evaluates risk and prices weekly premiums dynamically.
+- **Inputs**: 30% Weather Forecast, 20% AQI Trends, 20% User Claim History, 15% Location Risk, 15% Platform Demand Factor.
+- **Output**: Generates a 0.0 to 1.0 Risk Score, an AI Quote, and a predictive Next-Week Demand Forecast.
 
-**Decision:** `< 0.4` → Auto-Approve | `0.4–0.7` → Manual Review | `> 0.7` → Auto-Reject
+### ⚡ 2. Parametric Trigger Engine
+Real-time environmental monitoring via robust third-party APIs.
+- **Triggers Monitored**: Heavy Rain (>65mm/hr), Extreme Heat (>42°C), Hazardous AQI (>200), Flash Floods, and Civic Curfews.
+- **Automation**: Node-cron background scheduler scans active policies every 5 minutes and auto-files claims the moment a threshold is crossed.
 
----
+### 🛡️ 3. Advanced AI Fraud Detection
+Instant payouts require ironclad fraud protection. Our 7-signal heuristics engine runs on every auto-claim.
+- **Checks**: GPS Spoofing (Browser vs. IP vs. Platform), Time Anomalies, Weather Mismatches, and Rapid Claim Velocity.
+- **Decisions**: >0.70 score = Auto-Reject. <0.40 score = Auto-Approve & Payout.
 
-## 🎭 Worker Personas
+### 🌍 4. All-India Geo-Intelligence
+- Built-in dataset for 21 major Indian cities.
+- **Auto-Detection**: Uses HTML5 Geolocation with a backend Reverse Geocoding fallback (OpenCage API). If offline, uses a Haversine distance algorithm to assign the nearest operational hub.
 
-| Platform  | Persona              | Risk Mult | Notes                                    |
-|-----------|----------------------|-----------|------------------------------------------|
-| Zepto     | Q-Commerce Rider     | 1.18×     | Extreme conditions, highest volatility   |
-| Blinkit   | Q-Commerce Rider     | 1.15×     | Quick commerce, high disruption exposure |
-| Dunzo     | Q-Commerce Rider     | 1.12×     | On-demand delivery                       |
-| Zomato    | Food Delivery Partner| 1.08×     | Rain = high demand but dangerous         |
-| Swiggy    | Food Delivery Partner| 1.08×     | Peak hours in adverse weather            |
-| Amazon    | E-Commerce Courier   | 0.92×     | Indoor pickup, less weather exposure     |
-| Flipkart  | E-Commerce Courier   | 0.92×     | Controlled delivery environment          |
+### 📊 5. Enterprise-Grade Dashboards
+- **Worker App**: Glassmorphism UI, real-time AI explainability banners, active policy trackers, and one-click demo simulators.
+- **Admin Insights**: Real-time business KPIs, Loss Ratios, 14-day Fraud Trends, Platform Performance (e.g., Blinkit vs. Zepto), and Predictive High-Risk Zones.
 
 ---
 
-## 📡 Key API Endpoints
+## 🏗️ Technical Architecture
 
-```
-POST /api/auth/register          → Register new gig worker
-POST /api/auth/request-otp       → Get OTP (returned in response in dev mode)
-POST /api/auth/login             → Verify OTP, get JWT
+ShramInsure is built for scalability and enterprise reliability.
 
-GET  /api/risk/personas          → All worker persona profiles
-POST /api/risk/calculate         → Hybrid AI risk score + next-week prediction
-
-POST /api/policies/quote         → AI-powered weekly premium quote
-POST /api/policies               → Create policy
-
-POST /api/claims/trigger-check   → Run live trigger scan + auto-create claims
-GET  /api/claims/environment     → Live weather/AQI conditions for city
-
-POST /api/simulate/rain          → Demo: simulate heavy rain event
-POST /api/simulate/pollution     → Demo: simulate AQI emergency
-POST /api/simulate/flood         → Demo: simulate flood alert
-POST /api/simulate/heat          → Demo: simulate extreme heat
-POST /api/simulate/curfew        → Demo: simulate zone curfew
-POST /api/simulate/weather-trigger → Generic trigger (body: triggerType, value)
-
-GET  /api/admin/insights         → Full admin analytics + predictions
-POST /api/admin/scheduler/run    → Manually trigger scheduler cycle
-GET  /api/admin/logs             → Combined trigger + claim + payout logs
-GET  /api/analytics/dashboard    → Admin business metrics
-GET  /api/analytics/worker       → Worker dashboard data
+```mermaid
+graph TD
+    UI[Frontend: React + Vite + Tailwind] -->|REST API| API[Backend: Node.js + Express]
+    API --> AI[Hybrid AI Risk Engine]
+    API --> Fraud[Fraud Detection Heuristics]
+    API --> DB[(SQLite Database)]
+    
+    Cron[Background Scheduler: Node-Cron] -->|Every 5 mins| Monitor[Trigger Monitor]
+    Monitor -->|Fetch Real-time Data| Ext1[OpenWeatherMap API]
+    Monitor -->|Fetch Real-time Data| Ext2[WAQI API]
+    
+    Monitor -->|Breach Detected| Claim[Auto-Claim Generator]
+    Claim --> Fraud
+    Fraud -->|Approved| Payout[Razorpay/UPI Payment Gateway]
 ```
 
 ---
 
-## 🌍 Environment Variables
+## 🎮 The "Zero-Touch" Demo Flow
+Experience the platform exactly as a worker and an admin would.
 
-See `backend/.env.example` — all vars are optional; system falls back to mock data.
+1. **Onboarding**: Worker registers. The system auto-detects their location (e.g., Mumbai, Central Zone).
+2. **AI Quoting**: Worker requests a policy. The AI evaluates real-time Mumbai weather and their Zepto platform profile, offering a dynamic weekly premium (e.g., ₹45/week for ₹800 coverage).
+3. **The Event**: A severe monsoon hits Mumbai.
+4. **The Automation**: The ShramInsure background scheduler detects the 85mm/hr rainfall via OpenWeatherMap. It finds the worker's active policy and auto-generates a claim.
+5. **The Verification**: The AI Fraud engine verifies the worker's GPS pings match the Mumbai weather event. It assigns a 0.12 Fraud Score (Clean).
+6. **The Payout**: The claim is approved, and Razorpay instantly credits ₹800 to the worker's UPI ID. The worker's dashboard updates with a glowing success banner.
 
-```env
-PORT=5001
-JWT_SECRET=shraminsure_super_secret_jwt_key_2026
-OPENWEATHER_API_KEY=    # optional — uses mock if absent
-IQAIR_API_KEY=          # optional — uses mock if absent
-RAZORPAY_KEY_ID=        # optional — uses simulation if absent
-RAZORPAY_SECRET=        # optional — uses simulation if absent
-```
+*To test this flow yourself, check out the `SETUP.md` file for local installation instructions and use the `/simulate` page in the app!*
+
+---
+
+## 🚀 Future Scope
+- **IoT Integration**: Connecting with smart-scooter telemetry for hyper-accurate micro-climate data.
+- **Dynamic Routing Integration**: Pausing insurance premiums dynamically when the worker's Q-Commerce app goes offline.
+- **Blockchain Smart Contracts**: Migrating the parametric triggers to Ethereum/Polygon smart contracts for cryptographically guaranteed, trustless payouts.
